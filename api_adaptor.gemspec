@@ -31,6 +31,7 @@ Gem::Specification.new do |spec|
   spec.executables = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
   spec.add_dependency "rest-client", "~> 2.1"
+  spec.add_dependency "addressable", "~> 2.8"
   spec.add_dependency "link_header", "~> 0.0.8"
 
   spec.add_development_dependency "webmock", "~> 3.18"
