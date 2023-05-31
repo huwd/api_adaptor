@@ -2,6 +2,7 @@
 
 require "api_adaptor"
 require 'webmock/rspec'
+require "timecop"
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
