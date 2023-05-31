@@ -15,7 +15,61 @@ If bundler is not being used to manage dependencies, install the gem by executin
 
 ## Usage
 
-TODO: Write usage instructions here
+Use the ApiAdaptor as a base class for your API wrapper, for example:
+
+```
+  class MyApi < ApiAdaptor::Base
+    def base_url
+      endpoint
+    end
+  end
+```
+
+Use your new class to create a client that can make HTTP requests to JSON APIs for:
+
+### GET JSON
+
+```
+    client = MyApi.new
+    response = client.get_json("http://some.endpoint/json")
+```
+
+### POST JSON
+
+```
+    client = MyApi.new
+    response = client.post_json("http://some.endpoint/json", { "foo": "bar" })
+```
+
+### PUT JSON
+
+```
+    client = MyApi.new
+    response = client.put_json("http://some.endpoint/json", { "foo": "bar" })
+```
+
+### PATCH JSON
+
+```
+    client = MyApi.new
+    response = client.patch_json("http://some.endpoint/json", { "foo": "bar" })
+```
+
+### DELETE JSON
+
+```
+    client = MyApi.new
+    response = client.delete_json("http://some.endpoint/json", { "foo": "bar" })
+```
+
+### GET raw requests
+
+you can also get a raw response from the API
+
+```
+    client = MyApi.new
+    response = client.get_raw("http://some.endpoint/json")
+```
 
 ## Environment variables
 
