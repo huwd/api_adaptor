@@ -24,7 +24,7 @@ module ApiAdaptor
     def self.default_request_headers
       {
         "Accept" => "application/json",
-        "User-Agent" => "#{Variables.app_name}/#{Variables.app_version} (#{Variables. app_contact}",
+        "User-Agent" => "#{Variables.app_name}/#{Variables.app_version} (#{Variables. app_contact})",
       }
     end
 
