@@ -17,7 +17,9 @@ RSpec.describe ApiAdaptor::JsonClient do
 
     it "can use bearer token" do
       client = ApiAdaptor::JsonClient.new(bearer_token: "SOME_BEARER_TOKEN")
-      expected_headers = ApiAdaptor::JsonClient.default_request_with_json_body_headers.merge("Authorization" => "Bearer SOME_BEARER_TOKEN")
+      expected_headers = ApiAdaptor::JsonClient.default_request_with_json_body_headers.merge(
+        "Authorization" => "Bearer SOME_BEARER_TOKEN"
+      )
       stub_request(:put, "http://some.other.endpoint/some.json").with(headers: expected_headers).to_return(
         body: "{\"a\":2}", status: 200
       )
@@ -427,7 +429,9 @@ RSpec.describe ApiAdaptor::JsonClient do
   describe "#post_multipart" do
     it "can post multipart responses" do
       url = "http://some.endpoint/some.json"
-      stub_request(:post, url).with(headers: { "Content-Type" => %r{multipart/form-data; boundary=----RubyFormBoundary\w+} }) do |request|
+      stub_request(:post, url).with(
+        headers: { "Content-Type" => %r{multipart/form-data; boundary=----RubyFormBoundary\w+} }
+      ) do |request|
         request.body =~ /------RubyFormBoundary\w+\r\nContent-Disposition: form-data; name="a"\r\n\r\n123\r\n------RubyFormBoundary\w+--\r\n/
       end.to_return(body: "{\"b\": \"1\"}", status: 200)
       response = client.post_multipart("http://some.endpoint/some.json", "a" => "123")
