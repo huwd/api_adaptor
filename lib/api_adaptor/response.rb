@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "json"
 require "forwardable"
 
@@ -20,7 +22,7 @@ module ApiAdaptor
     include Enumerable
 
     class CacheControl < Hash
-      PATTERN = /([-a-z]+)(?:\s*=\s*([^,\s]+))?,?+/i
+      PATTERN = /([-a-z]+)(?:\s*=\s*([^,\s]+))?,?+/i.freeze
 
       def initialize(value = nil)
         super()
@@ -58,12 +60,12 @@ module ApiAdaptor
       def reverse_max_age
         self["r-maxage"].to_i if key?("r-maxage")
       end
-      alias_method :r_maxage, :reverse_max_age
+      alias r_maxage reverse_max_age
 
       def shared_max_age
         self["s-maxage"].to_i if key?("r-maxage")
       end
-      alias_method :s_maxage, :shared_max_age
+      alias s_maxage shared_max_age
 
       def to_s
         directives = []
@@ -152,7 +154,7 @@ module ApiAdaptor
       false
     end
 
-  private
+    private
 
     def transform_parsed(value)
       return value if @web_urls_relative_to.nil?

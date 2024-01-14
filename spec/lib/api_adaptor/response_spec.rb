@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "api_adaptor/response"
 
 RSpec.describe ApiAdaptor::Response do
@@ -106,7 +108,7 @@ RSpec.describe ApiAdaptor::Response do
 
     it "should map web URLs" do
       body = {
-        "web_url" => "https://www.web.site/test",
+        "web_url" => "https://www.web.site/test"
       }.to_json
       expect(build_response(body)["web_url"]).to eq("/test")
     end
@@ -114,7 +116,7 @@ RSpec.describe ApiAdaptor::Response do
     it "should leave other properties alone" do
       body = {
         "title" => "Title",
-        "description" => "Description",
+        "description" => "Description"
       }.to_json
       response = build_response(body)
       expect(response["title"]).to eq("Title")
@@ -125,8 +127,8 @@ RSpec.describe ApiAdaptor::Response do
       body = {
         "details" => {
           "chirality" => "widdershins",
-          "web_url" => "https://www.web.site/left",
-        },
+          "web_url" => "https://www.web.site/left"
+        }
       }.to_json
 
       response = build_response(body)
@@ -137,8 +139,8 @@ RSpec.describe ApiAdaptor::Response do
       body = {
         "other_urls" => [
           { "title" => "Pies", "web_url" => "https://www.web.site/pies" },
-          { "title" => "Cheese", "web_url" => "https://www.web.site/cheese" },
-        ],
+          { "title" => "Cheese", "web_url" => "https://www.web.site/cheese" }
+        ]
       }.to_json
 
       response = build_response(body)
@@ -155,7 +157,7 @@ RSpec.describe ApiAdaptor::Response do
 
     it "should handle query parameters" do
       body = {
-        "web_url" => "https://www.web.site/thing?does=stuff",
+        "web_url" => "https://www.web.site/thing?does=stuff"
       }.to_json
 
       response = build_response(body)
@@ -164,7 +166,7 @@ RSpec.describe ApiAdaptor::Response do
 
     it "should handle fragments" do
       body = {
-        "web_url" => "https://www.web.site/thing#part-2",
+        "web_url" => "https://www.web.site/thing#part-2"
       }.to_json
 
       response = build_response(body)
@@ -173,7 +175,7 @@ RSpec.describe ApiAdaptor::Response do
 
     it "should keep URLs from other domains absolute" do
       body = {
-        "web_url" => "https://www.example.com/example",
+        "web_url" => "https://www.example.com/example"
       }.to_json
 
       response = build_response(body)
@@ -182,7 +184,7 @@ RSpec.describe ApiAdaptor::Response do
 
     it "should keep URLs with other schemes absolute" do
       body = {
-        "web_url" => "http://www.example.com/example",
+        "web_url" => "http://www.example.com/example"
       }.to_json
 
       response = build_response(body)
@@ -194,7 +196,7 @@ RSpec.describe ApiAdaptor::Response do
     before :each do
       @response_data = {
         "_response_info" => {
-          "status" => "ok",
+          "status" => "ok"
         },
         "id" => "https://www.web.site/api/vat-rates.json",
         "web_url" => "https://www.web.site/vat-rates",
@@ -205,13 +207,13 @@ RSpec.describe ApiAdaptor::Response do
           "need_id" => "1870",
           "business_proposition" => false,
           "description" => "Current VAT rates - standard 20% and rates for reduced rate and zero-rated items",
-          "language" => "en",
+          "language" => "en"
         },
         "tags" => [
           { "slug" => "foo" },
           { "slug" => "bar" },
-          { "slug" => "baz" },
-        ],
+          { "slug" => "baz" }
+        ]
       }
       @response = ApiAdaptor::Response.new(double(body: @response_data.to_json))
     end
@@ -227,14 +229,14 @@ RSpec.describe ApiAdaptor::Response do
       end
 
       it "should allow accessing nested keys" do
-        expect(@response["details"]["need_id"]).to eq( "1870")
+        expect(@response["details"]["need_id"]).to eq("1870")
       end
 
       it "should return nil for a non-existent key" do
         expect(@response["foo"]).to be_nil
       end
 
-      it 'should memoize the parsed hash' do
+      it "should memoize the parsed hash" do
         expect(JSON).not_to receive(:parse)
         expect(@response["title"]).to eq("VAT rates")
       end

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
-require 'api_adaptor/null_logger'
+
+require "api_adaptor/null_logger"
 
 RSpec.describe ApiAdaptor::NullLogger do
   subject { logger }
@@ -13,23 +14,23 @@ RSpec.describe ApiAdaptor::NullLogger do
   it { is_expected.to respond_to(:info) }
   it { is_expected.to respond_to(:debug) }
 
-  it 'returns false for debug?' do
+  it "returns false for debug?" do
     expect(logger).not_to be_debug
   end
 
-  it 'returns false for info?' do
+  it "returns false for info?" do
     expect(logger).not_to be_info
   end
 
-  it 'returns false for error?' do
+  it "returns false for error?" do
     expect(logger).not_to be_error
   end
 
-  it 'returns false for warn?' do
+  it "returns false for warn?" do
     expect(logger).not_to be_warn
   end
 
-  it 'returns false for fatal?' do
+  it "returns false for fatal?" do
     expect(logger).not_to be_fatal
   end
 end

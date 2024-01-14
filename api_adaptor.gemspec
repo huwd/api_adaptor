@@ -30,13 +30,13 @@ Gem::Specification.new do |spec|
   spec.bindir = "exe"
   spec.executables = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
-  spec.add_dependency "rest-client", "~> 2.1"
   spec.add_dependency "addressable", "~> 2.8"
   spec.add_dependency "link_header", "~> 0.0.8"
+  spec.add_dependency "rest-client", "~> 2.1"
 
-  spec.add_development_dependency "webmock", "~> 3.18"
-  spec.add_development_dependency "timecop", "~> 0.9"
   spec.add_development_dependency "rake", "~> 13.0"
   spec.add_development_dependency "rspec", "~> 3.0"
   spec.add_development_dependency "rubocop", "~> 1.21"
+  spec.add_development_dependency "timecop", "~> 0.9"
+  spec.add_development_dependency "webmock", "~> 3.18"
 end

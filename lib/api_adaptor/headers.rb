@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ApiAdaptor
   class Headers
     class << self
@@ -6,14 +8,14 @@ module ApiAdaptor
       end
 
       def headers
-        header_data.reject { |_k, v| (v.nil? || v.empty?) }
+        header_data.reject { |_k, v| v.nil? || v.empty? }
       end
 
       def clear_headers
         Thread.current[:headers] = {}
       end
 
-    private
+      private
 
       def header_data
         Thread.current[:headers] ||= {}

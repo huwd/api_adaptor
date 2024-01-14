@@ -1,13 +1,15 @@
+# frozen_string_literal: true
+
 require "api_adaptor/base"
 require "uri"
 
-RSpec.describe ApiAdaptor::Base do
-  class ConcreteApi < described_class
-    def base_url
-      endpoint
-    end
+class ConcreteApi < ApiAdaptor::Base
+  def base_url
+    endpoint
   end
+end
 
+RSpec.describe ApiAdaptor::Base do
   after do
     described_class.default_options = nil
   end

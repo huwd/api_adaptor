@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "api_adaptor/headers"
 
 RSpec.describe ApiAdaptor::Headers do
@@ -16,7 +18,7 @@ RSpec.describe ApiAdaptor::Headers do
     expect(ApiAdaptor::Headers.headers).to eq(
       {
         "Accept-Language" => "en-US,en;q=0.5",
-        "Content-Type" => "application/pdf",
+        "Content-Type" => "application/pdf"
       }
     )
   end
