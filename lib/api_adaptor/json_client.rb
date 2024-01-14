@@ -15,9 +15,7 @@ module ApiAdaptor
     attr_accessor :logger, :options
 
     def initialize(options = {})
-      if options[:disable_timeout] || options[:timeout].to_i.negative?
-        raise "It is no longer possible to disable the timeout."
-      end
+      raise "It is no longer possible to disable the timeout." if options[:disable_timeout] || options[:timeout].to_i.negative?
 
       @logger = options[:logger] || NullLogger.new
       @options = options

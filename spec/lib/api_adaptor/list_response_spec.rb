@@ -116,13 +116,13 @@ RSpec.describe ApiAdaptor::ListResponse do
     describe "accessing next page" do
       it "should allow accessing the next page" do
         resp = ApiAdaptor::ListResponse.new(@p1_response, @client)
-        expect(resp.has_next_page?).to be_truthy
+        expect(resp.next_page?).to be_truthy
         expect(resp.next_page["results"]).to eq %w[foo2 bar2]
       end
 
       it "should return nil with no next page" do
         resp = ApiAdaptor::ListResponse.new(@p3_response, @client)
-        expect(resp.has_next_page?).to be_falsy
+        expect(resp.next_page?).to be_falsy
         expect(resp.next_page).to be_nil
       end
 
