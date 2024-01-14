@@ -59,14 +59,14 @@ class ApiAdaptor::Base
     end
   end
 
-private
+  private
 
   attr_accessor :endpoint
 
   def query_string(params)
     return "" if params.empty?
 
-    param_pairs = params.sort.map { |key, value|
+    param_pairs = params.sort.map do |key, value|
       case value
       when Array
         value.map do |v|
@@ -75,9 +75,9 @@ private
       else
         "#{CGI.escape(key.to_s)}=#{CGI.escape(value.to_s)}"
       end
-    }.flatten
+    end.flatten
 
-    "?#{param_pairs.join('&')}"
+    "?#{param_pairs.join("&")}"
   end
 
   def uri_encode(param)

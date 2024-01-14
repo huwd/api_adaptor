@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "api_adaptor"
-require 'webmock/rspec'
+require "webmock/rspec"
 require "timecop"
 
 RSpec.configure do |config|

@@ -13,7 +13,7 @@ module ApiAdaptor
         Thread.current[:headers] = {}
       end
 
-    private
+      private
 
       def header_data
         Thread.current[:headers] ||= {}

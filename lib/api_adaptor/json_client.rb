@@ -24,7 +24,7 @@ module ApiAdaptor
     def self.default_request_headers
       {
         "Accept" => "application/json",
-        "User-Agent" => "#{Variables.app_name}/#{Variables.app_version} (#{Variables. app_contact})",
+        "User-Agent" => "#{Variables.app_name}/#{Variables.app_version} (#{Variables.app_contact})"
       }
     end
 
@@ -34,7 +34,7 @@ module ApiAdaptor
 
     def self.json_body_headers
       {
-        "Content-Type" => "application/json",
+        "Content-Type" => "application/json"
       }
     end
 
@@ -78,7 +78,7 @@ module ApiAdaptor
       Response.new(r)
     end
 
-  private
+    private
 
     def do_raw_request(method, url, params = nil)
       do_request(method, url, params)
@@ -94,9 +94,7 @@ module ApiAdaptor
     #                  from the Net::HTTPResponse
     def do_json_request(method, url, params = nil, additional_headers = {}, &create_response)
       begin
-        if params
-          additional_headers.merge!(self.class.json_body_headers)
-        end
+        additional_headers.merge!(self.class.json_body_headers) if params
         response = do_request(method, url, (params.to_json if params), additional_headers)
       rescue RestClient::Exception => e
         # Attempt to parse the body as JSON if possible
@@ -119,25 +117,24 @@ module ApiAdaptor
       if @options[:bearer_token]
         headers = method_params[:headers] || {}
         method_params.merge(headers: headers.merge(
-          "Authorization" => "Bearer #{@options[:bearer_token]}",
+          "Authorization" => "Bearer #{@options[:bearer_token]}"
         ))
       elsif @options[:basic_auth]
         method_params.merge(
           user: @options[:basic_auth][:user],
-          password: @options[:basic_auth][:password],
+          password: @options[:basic_auth][:password]
         )
       else
         method_params
       end
     end
 
-
     # Take a hash of parameters for Request#execute; return a hash of
     # parameters with timeouts included
     def with_timeout(method_params)
       method_params.merge(
         timeout: options[:timeout] || DEFAULT_TIMEOUT_IN_SECONDS,
-        open_timeout: options[:timeout] || DEFAULT_TIMEOUT_IN_SECONDS,
+        open_timeout: options[:timeout] || DEFAULT_TIMEOUT_IN_SECONDS
       )
     end
 
@@ -146,14 +143,14 @@ module ApiAdaptor
         headers: default_headers
           .merge(method_params[:headers] || {})
           .merge(ApiAdaptor::Headers.headers)
-          .merge(additional_headers),
+          .merge(additional_headers)
       )
     end
 
     def with_ssl_options(method_params)
       method_params.merge(
         # This is the default value anyway, but we should probably be explicit
-        verify_ssl: OpenSSL::SSL::VERIFY_NONE,
+        verify_ssl: OpenSSL::SSL::VERIFY_NONE
       )
     end
 
@@ -164,26 +161,27 @@ module ApiAdaptor
 
       method_params = {
         method: method,
-        url: url,
+        url: url
       }
 
       method_params[:payload] = params
       method_params = with_timeout(method_params)
       method_params = with_headers(method_params, self.class.default_request_headers, additional_headers)
       method_params = with_auth_options(method_params)
-      if URI.parse(url).is_a? URI::HTTPS
-        method_params = with_ssl_options(method_params)
-      end
+      method_params = with_ssl_options(method_params) if URI.parse(url).is_a? URI::HTTPS
 
       ::RestClient::Request.execute(method_params)
     rescue Errno::ECONNREFUSED => e
-      logger.error loggable.merge(status: "refused", error_message: e.message, error_class: e.class.name, end_time: Time.now.to_f).to_json
+      logger.error loggable.merge(status: "refused", error_message: e.message, error_class: e.class.name,
+                                  end_time: Time.now.to_f).to_json
       raise ApiAdaptor::EndpointNotFound, "Could not connect to #{url}"
     rescue RestClient::Exceptions::Timeout => e
-      logger.error loggable.merge(status: "timeout", error_message: e.message, error_class: e.class.name, end_time: Time.now.to_f).to_json
+      logger.error loggable.merge(status: "timeout", error_message: e.message, error_class: e.class.name,
+                                  end_time: Time.now.to_f).to_json
       raise ApiAdaptor::TimedOutException, e.message
     rescue URI::InvalidURIError => e
-      logger.error loggable.merge(status: "invalid_uri", error_message: e.message, error_class: e.class.name, end_time: Time.now.to_f).to_json
+      logger.error loggable.merge(status: "invalid_uri", error_message: e.message, error_class: e.class.name,
+                                  end_time: Time.now.to_f).to_json
       raise ApiAdaptor::InvalidUrl, e.message
     rescue RestClient::Exception => e
       # Log the error here, since we have access to loggable, but raise the
@@ -192,10 +190,12 @@ module ApiAdaptor
       logger.warn loggable.to_json
       raise
     rescue Errno::ECONNRESET => e
-      logger.error loggable.merge(status: "connection_reset", error_message: e.message, error_class: e.class.name, end_time: Time.now.to_f).to_json
+      logger.error loggable.merge(status: "connection_reset", error_message: e.message, error_class: e.class.name,
+                                  end_time: Time.now.to_f).to_json
       raise ApiAdaptor::TimedOutException, e.message
     rescue SocketError => e
-      logger.error loggable.merge(status: "socket_error", error_message: e.message, error_class: e.class.name, end_time: Time.now.to_f).to_json
+      logger.error loggable.merge(status: "socket_error", error_message: e.message, error_class: e.class.name,
+                                  end_time: Time.now.to_f).to_json
       raise ApiAdaptor::SocketErrorException, e.message
     end
   end

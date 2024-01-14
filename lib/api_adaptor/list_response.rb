@@ -33,9 +33,7 @@ module ApiAdaptor
       # avoid us making multiple requests for the same page, but we shouldn't
       # allow the data to change once it's already been loaded, so long as we
       # retain a reference to any one page in the sequence
-      @next_page ||= if has_next_page?
-                       @api_client.get_list page_link("next").href
-                     end
+      @next_page ||= (@api_client.get_list page_link("next").href if has_next_page?)
     end
 
     def has_previous_page?
@@ -44,9 +42,7 @@ module ApiAdaptor
 
     def previous_page
       # See the note in `next_page` for why this is memoised
-      @previous_page ||= if has_previous_page?
-                           @api_client.get_list(page_link("previous").href)
-                         end
+      @previous_page ||= (@api_client.get_list(page_link("previous").href) if has_previous_page?)
     end
 
     # Transparently get all results across all pages. Compare this with #each
@@ -70,13 +66,11 @@ module ApiAdaptor
     def with_subsequent_pages
       Enumerator.new do |yielder|
         each { |i| yielder << i }
-        if has_next_page?
-          next_page.with_subsequent_pages.each { |i| yielder << i }
-        end
+        next_page.with_subsequent_pages.each { |i| yielder << i } if has_next_page?
       end
     end
 
-  private
+    private
 
     def link_header
       @link_header ||= LinkHeader.parse @http_response.headers[:link]
