@@ -77,7 +77,7 @@ RSpec.describe ApiAdaptor::JsonClient do
                                                                                     "HEADER-C" => "D")
         assert_requested(:get, %r{/some.json}) do |request|
           headers_with_uppercase_names = request.headers.transform_keys(&:upcase)
-          ((headers_with_uppercase_names["HEADER-A"] == "B") and (headers_with_uppercase_names["HEADER-C"] == "D"))
+          (headers_with_uppercase_names["HEADER-A"] == "B") and (headers_with_uppercase_names["HEADER-C"] == "D")
         end
       end
 
@@ -245,7 +245,7 @@ RSpec.describe ApiAdaptor::JsonClient do
                                                                                          "HEADER-C" => "D")
         assert_requested(:post, %r{/some.json}) do |request|
           headers_with_uppercase_names = request.headers.transform_keys(&:upcase)
-          ((headers_with_uppercase_names["HEADER-A"] == "B") and (headers_with_uppercase_names["HEADER-C"] == "D"))
+          (headers_with_uppercase_names["HEADER-A"] == "B") and (headers_with_uppercase_names["HEADER-C"] == "D")
         end
       end
 
@@ -315,7 +315,7 @@ RSpec.describe ApiAdaptor::JsonClient do
                                                                                         "HEADER-C" => "D")
         assert_requested(:put, %r{/some.json}) do |request|
           headers_with_uppercase_names = request.headers.transform_keys(&:upcase)
-          ((headers_with_uppercase_names["HEADER-A"] == "B") and (headers_with_uppercase_names["HEADER-C"] == "D"))
+          (headers_with_uppercase_names["HEADER-A"] == "B") and (headers_with_uppercase_names["HEADER-C"] == "D")
         end
       end
 
@@ -389,7 +389,7 @@ RSpec.describe ApiAdaptor::JsonClient do
                                                                                            "HEADER-C" => "D")
         assert_requested(:delete, %r{/some.json}) do |request|
           headers_with_uppercase_names = request.headers.transform_keys(&:upcase)
-          ((headers_with_uppercase_names["HEADER-A"] == "B") and (headers_with_uppercase_names["HEADER-C"] == "D"))
+          (headers_with_uppercase_names["HEADER-A"] == "B") and (headers_with_uppercase_names["HEADER-C"] == "D")
         end
       end
 
