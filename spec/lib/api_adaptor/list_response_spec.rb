@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "api_adaptor/list_response"
 
 RSpec.describe ApiAdaptor::ListResponse do

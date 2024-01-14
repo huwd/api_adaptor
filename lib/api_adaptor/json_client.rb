@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative "exceptions"
 require_relative "variables"
 require_relative "null_logger"

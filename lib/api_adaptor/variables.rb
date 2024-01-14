@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ApiAdaptor
   module Variables
     def self.app_name

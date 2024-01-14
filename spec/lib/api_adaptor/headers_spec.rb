@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "api_adaptor/headers"
 
 RSpec.describe ApiAdaptor::Headers do

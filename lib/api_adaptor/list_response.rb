@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "json"
 require "api_adaptor/response"
 require "link_header"

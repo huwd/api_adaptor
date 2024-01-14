@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ApiAdaptor
   # Abstract error class
   class BaseError < StandardError; end

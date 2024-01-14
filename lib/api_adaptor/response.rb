@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "json"
 require "forwardable"
 
@@ -20,7 +22,7 @@ module ApiAdaptor
     include Enumerable
 
     class CacheControl < Hash
-      PATTERN = /([-a-z]+)(?:\s*=\s*([^,\s]+))?,?+/i
+      PATTERN = /([-a-z]+)(?:\s*=\s*([^,\s]+))?,?+/i.freeze
 
       def initialize(value = nil)
         super()
