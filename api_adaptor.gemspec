@@ -12,7 +12,7 @@ Gem::Specification.new do |spec|
   spec.description = "A basic adaptor to send HTTP requests and parse the responses. Intended to bootstrap the quick writing of Adaptors for specific APIs, without having to write the same old JSON request and processing time and time again."
   spec.homepage = "https://github.com/huwd/api_adaptor"
   spec.license = "MIT"
-  spec.required_ruby_version = ">= 2.6.0"
+  spec.required_ruby_version = ">= 3.2.0"
 
   spec.metadata["allowed_push_host"] = "https://rubygems.org"
 
