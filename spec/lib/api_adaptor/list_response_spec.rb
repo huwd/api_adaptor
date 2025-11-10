@@ -138,6 +138,31 @@ RSpec.describe ApiAdaptor::ListResponse do
       end
     end
 
+    describe "accessing previous page" do
+      it "should allow accessing the previous page" do
+        resp = ApiAdaptor::ListResponse.new(@p2_response, @client)
+        expect(resp.previous_page?).to be_truthy
+        expect(resp.previous_page["results"]).to eq %w[foo1 bar1]
+      end
+
+      it "should return nil with no previous page" do
+        resp = ApiAdaptor::ListResponse.new(@p1_response, @client)
+        expect(resp.previous_page?).to be_falsy
+        expect(resp.previous_page).to be_nil
+      end
+
+      it "should memoize the previous_page" do
+        resp = ApiAdaptor::ListResponse.new(@p2_response, @client)
+        first_call = resp.previous_page
+
+        allow(@client).to receive(:get_list).with("http://www.example.com/1").and_return(ApiAdaptor::ListResponse.new(
+                                                                                           @p1_response, @client
+                                                                                         ))
+        second_call = resp.previous_page
+        expect(first_call).to eq second_call
+      end
+    end
+
     describe "accessing content across all pages" do
       before :each do
         @response = ApiAdaptor::ListResponse.new(@p1_response, @client)
