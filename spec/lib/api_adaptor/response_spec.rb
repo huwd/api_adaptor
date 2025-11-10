@@ -28,7 +28,7 @@ RSpec.describe ApiAdaptor::Response do
         cache_control_headers = { cache_control: "public, max-age=900" }
         headers = cache_control_headers.merge(date: Time.now.httpdate)
 
-        mock_http_response = double(body: "A Response body", code: 200, headers: headers)
+        mock_http_response = double(body: "A Response body", code: 200, headers:)
         response = ApiAdaptor::Response.new(mock_http_response)
 
         expect(response.expires_at).to eq(Time.parse("15:15"))
@@ -40,7 +40,7 @@ RSpec.describe ApiAdaptor::Response do
         cache_headers = { cache_control: "public", expires: (Time.now + 900).httpdate }
         headers = cache_headers.merge(date: Time.now.httpdate)
 
-        mock_http_response = double(body: "A Response body", code: 200, headers: headers)
+        mock_http_response = double(body: "A Response body", code: 200, headers:)
         response = ApiAdaptor::Response.new(mock_http_response)
 
         expect(response.expires_at).to eq(Time.parse("15:15"))
@@ -66,7 +66,7 @@ RSpec.describe ApiAdaptor::Response do
     it "should be seconds remaining from expiration time inferred from max-age" do
       cache_control_headers = { cache_control: "public, max-age=900" }
       headers = cache_control_headers.merge(date: Time.now.httpdate)
-      mock_http_response = double(body: "A Response body", code: 200, headers: headers)
+      mock_http_response = double(body: "A Response body", code: 200, headers:)
 
       Timecop.travel(12 * 60) do
         response = ApiAdaptor::Response.new(mock_http_response)
@@ -77,7 +77,7 @@ RSpec.describe ApiAdaptor::Response do
     it "should be seconds remaining from expiration time inferred from Expires header" do
       cache_headers = { cache_control: "public", expires: (Time.now + 900).httpdate }
       headers = cache_headers.merge(date: Time.now.httpdate)
-      mock_http_response = double(body: "A Response body", code: 200, headers: headers)
+      mock_http_response = double(body: "A Response body", code: 200, headers:)
 
       Timecop.travel(12 * 60) do
         response = ApiAdaptor::Response.new(mock_http_response)
