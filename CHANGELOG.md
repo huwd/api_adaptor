@@ -1,6 +1,6 @@
 ## [Unreleased]
 
-- Improvements to Ci/CD
+- Improvements to CI/CD
   - Enable CodeQL
   - Enable Dependabot
   - Enable Rubocop Testing
