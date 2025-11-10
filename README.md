@@ -22,58 +22,62 @@ gem install api_adaptor
 Use the ApiAdaptor as a base class for your API wrapper, for example:
 
 ```ruby
-  class MyApi < ApiAdaptor::Base
-    def base_url
-      endpoint
-    end
-  end
+  class MyApi < ApiAdaptor::Base; end
 ```
 
 Use your new class to create a client that can make HTTP requests to JSON APIs for:
 
-### GET JSON
-
 ```ruby
 client = MyApi.new
-response = client.get_json("http://some.endpoint/json")
+client.get_json("http://some.endpoint/json")
+client.post_json("http://some.endpoint/json", { "foo": "bar" })
+client.put_json("http://some.endpoint/json", { "foo": "bar" })
+client.patch_json("http://some.endpoint/json", { "foo": "bar" })
+client.delete_json("http://some.endpoint/json", { "foo": "bar" })
 ```
 
-### POST JSON
+You can also get a raw response from the API
 
 ```ruby
-client = MyApi.new
-response = client.post_json("http://some.endpoint/json", { "foo": "bar" })
+client.get_raw("http://some.endpoint/json")
 ```
 
-### PUT JSON
+### Conventional usage
+
+An example of how to use this repository to bootstrap an API can be found in the [WikiData REST adaptor](https://github.com/huwd/wikidata_adaptor) it was built for.
+
+A REST API module can be created with:
 
 ```ruby
-client = MyApi.new
-response = client.put_json("http://some.endpoint/json", { "foo": "bar" })
+module MyApiAdaptor
+  # Wikidata REST API class
+  class RestApi < ApiAdaptor::Base
+    def get_foo(foo_id)
+      get_json("#{endpoint}/foo/#{CGI.escape(foo_id)}")
+    end
+  end
+end
 ```
 
-### PATCH JSON
+and can be wrapped in a top level module:
 
 ```ruby
-client = MyApi.new
-response = client.patch_json("http://some.endpoint/json", { "foo": "bar" })
+module MyApiAdaptor
+  class Error < StandardError; end
+
+  def self.rest_endpoint
+    ENV["MYAPI_REST_ENDPOINT"] || "https://example.com"
+  end
+
+  def self.rest_api
+    MyApiAdaptor::RestApi.new(rest_endpoint)
+  end
+end
 ```
 
-### DELETE JSON
-
-```ruby
-client = MyApi.new
-response = client.delete_json("http://some.endpoint/json", { "foo": "bar" })
-```
-
-### GET raw requests
-
-you can also get a raw response from the API
-
-```ruby
-client = MyApi.new
-response = client.get_raw("http://some.endpoint/json")
-```
+The intented convetion is to have test helpers ship alongside the actual Adaptor code.
+See [WikiData examples here](https://github.com/huwd/wikidata_adaptor/blob/main/lib/wikidata_adaptor/test_helpers/rest_api.rb).
+This allows other applications that integrate the API Adaptor to easily mock out calls and recieve representative data back.
 
 ## Environment variables
 
