@@ -74,7 +74,7 @@ GEM
     rubocop-ast (1.30.0)
       parser (>= 3.2.1.0)
     ruby-progressbar (1.13.0)
-    timecop (0.9.8)
+    timecop (0.9.10)
     unicode-display_width (2.5.0)
     webmock (3.26.1)
       addressable (>= 2.8.0)
