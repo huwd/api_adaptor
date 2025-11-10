@@ -1,5 +1,12 @@
 # frozen_string_literal: true
 
+require "simplecov"
+SimpleCov.start do
+  enable_coverage :branch
+  add_filter %r{^/spec/}
+  minimum_coverage 80 if ENV["CI"] == "1"
+end
+
 require "api_adaptor"
 require "webmock/rspec"
 require "timecop"
