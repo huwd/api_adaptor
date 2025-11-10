@@ -154,6 +154,18 @@ RSpec.describe ApiAdaptor::JsonClient do
     end
 
     describe "when encountering a HTTP error" do
+      it "raises HTTPBadRequest if the endpoint returns 400" do
+        url = "http://some.endpoint/some.json"
+        stub_request(:get, url).to_return(body: "{}", status: 400)
+        expect { client.get_json(url) }.to(raise_error(ApiAdaptor::HTTPBadRequest))
+      end
+
+      it "raises HTTPUnauthorized if the endpoint returns 401" do
+        url = "http://some.endpoint/some.json"
+        stub_request(:get, url).to_return(body: "{}", status: 401)
+        expect { client.get_json(url) }.to(raise_error(ApiAdaptor::HTTPUnauthorized))
+      end
+
       it "raises HTTPForbidden if the endpoint returns 403" do
         url = "http://some.endpoint/some.json"
         stub_request(:get, url).to_return(body: "{}", status: 403)
@@ -172,9 +184,59 @@ RSpec.describe ApiAdaptor::JsonClient do
         expect { client.get_json(url) }.to(raise_error(ApiAdaptor::HTTPGone))
       end
 
+      it "raises HTTPPayloadTooLarge if the endpoint returns 413" do
+        url = "http://some.endpoint/some.json"
+        stub_request(:get, url).to_return(body: "{}", status: 413)
+        expect { client.get_json(url) }.to(raise_error(ApiAdaptor::HTTPPayloadTooLarge))
+      end
+
+      it "raises HTTPUnprocessableEntity if the endpoint returns 422" do
+        url = "http://some.endpoint/some.json"
+        stub_request(:get, url).to_return(body: "{}", status: 422)
+        expect { client.get_json(url) }.to(raise_error(ApiAdaptor::HTTPUnprocessableEntity))
+      end
+
+      it "raises HTTPTooManyRequests if the endpoint returns 429" do
+        url = "http://some.endpoint/some.json"
+        stub_request(:get, url).to_return(body: "{}", status: 429)
+        expect { client.get_json(url) }.to(raise_error(ApiAdaptor::HTTPTooManyRequests))
+      end
+
+      it "raises HTTPClientError if the endpoint returns any other 4xx status" do
+        url = "http://some.endpoint/some.json"
+        statuses = (400..499).to_a - [400, 401, 403, 404, 410, 413, 422, 429]
+        stub_request(:get, url).to_return(body: "{}", status: statuses.sample)
+        expect { client.get_json(url) }.to(raise_error(ApiAdaptor::HTTPClientError))
+      end
+
       it "raises HTTPServerError if the endpoint returns 500" do
         url = "http://some.endpoint/some.json"
         stub_request(:get, url).to_return(body: "{}", status: 500)
+        expect { client.get_json(url) }.to(raise_error(ApiAdaptor::HTTPServerError))
+      end
+
+      it "raises HTTPBadGateway if the endpoint returns 502" do
+        url = "http://some.endpoint/some.json"
+        stub_request(:get, url).to_return(body: "{}", status: 502)
+        expect { client.get_json(url) }.to(raise_error(ApiAdaptor::HTTPBadGateway))
+      end
+
+      it "raises HTTPUnavailable if the endpoint returns 503" do
+        url = "http://some.endpoint/some.json"
+        stub_request(:get, url).to_return(body: "{}", status: 503)
+        expect { client.get_json(url) }.to(raise_error(ApiAdaptor::HTTPUnavailable))
+      end
+
+      it "raises HTTPGatewayTimeout if the endpoint returns 504" do
+        url = "http://some.endpoint/some.json"
+        stub_request(:get, url).to_return(body: "{}", status: 504)
+        expect { client.get_json(url) }.to(raise_error(ApiAdaptor::HTTPGatewayTimeout))
+      end
+
+      it "raises HTTPServerError if the endpoint returns any other 5xx status" do
+        url = "http://some.endpoint/some.json"
+        statuses = (500..599).to_a - [500, 502, 503, 504]
+        stub_request(:get, url).to_return(body: "{}", status: statuses.sample)
         expect { client.get_json(url) }.to(raise_error(ApiAdaptor::HTTPServerError))
       end
     end
@@ -378,6 +440,80 @@ RSpec.describe ApiAdaptor::JsonClient do
         stub_request(:put, url).to_return(body: "{}", status: 500)
         expect { client.put_json(url, {}) }.to(raise_error(ApiAdaptor::HTTPServerError))
       end
+    end
+  end
+
+  describe "#patch_json" do
+    describe "client" do
+      it "can set custom headers on patches" do
+        stub_request(:patch, "http://some.other.endpoint/some.json").to_return(status: 200)
+        ApiAdaptor::JsonClient.new.patch_json("http://some.other.endpoint/some.json", {}, "HEADER-A" => "B",
+                                                                                          "HEADER-C" => "D")
+        assert_requested(:patch, %r{/some.json}) do |request|
+          headers_with_uppercase_names = request.headers.transform_keys(&:upcase)
+          (headers_with_uppercase_names["HEADER-A"] == "B") and (headers_with_uppercase_names["HEADER-C"] == "D")
+        end
+      end
+    end
+
+    it "avoids setting content type headers without a body" do
+      url = "http://some.endpoint/some.json"
+      stub_request(:patch, url)
+      client.patch_json(url, {})
+
+      expect(a_request(:patch, url)
+        .with(headers: ApiAdaptor::JsonClient.default_request_with_json_body_headers)).to have_been_made
+    end
+  end
+
+  describe "responses" do
+    it "are always considered present and not blank" do
+      url = "http://some.endpoint/some.json"
+      stub_request(:patch, url).to_return(body: "{\"a\":1}", status: 200)
+      response = client.patch_json(url, {})
+      expect(!response.blank?).to(be_truthy)
+      expect(response.present?).to(eq(true))
+    end
+  end
+
+  describe "encoding" do
+    it "JSON encodes the payload " do
+      url = "http://some.endpoint/some.json"
+      payload = { a: 1 }
+      stub_request(:patch, url).with(body: payload.to_json).to_return(body: "{}", status: 200)
+      expect(client.patch_json(url, payload).to_hash).to(eq({}))
+    end
+
+    it "does not encode JSON if payload is nil" do
+      url = "http://some.endpoint/some.json"
+      stub_request(:patch, url).with(body: nil).to_return(body: "{}", status: 200)
+      expect(client.patch_json(url, nil).to_hash).to(eq({}))
+    end
+  end
+
+  describe "when encountering a HTTP error" do
+    it "raises HTTPForbidden if the endpoint returns 403" do
+      url = "http://some.endpoint/some.json"
+      stub_request(:patch, url).to_return(body: "{}", status: 403)
+      expect { client.patch_json(url, {}) }.to(raise_error(ApiAdaptor::HTTPForbidden))
+    end
+
+    it "raises HTTPNotFound if the endpoint returns 404" do
+      url = "http://some.endpoint/some.json"
+      stub_request(:patch, url).to_return(body: "{}", status: 404)
+      expect { client.patch_json(url, {}) }.to(raise_error(ApiAdaptor::HTTPNotFound))
+    end
+
+    it "raises HTTPGone if the endpoint returns 410" do
+      url = "http://some.endpoint/some.json"
+      stub_request(:patch, url).to_return(body: "{}", status: 410)
+      expect { client.patch_json(url, {}) }.to(raise_error(ApiAdaptor::HTTPGone))
+    end
+
+    it "raises HTTPServerError if the endpoint returns 500" do
+      url = "http://some.endpoint/some.json"
+      stub_request(:patch, url).to_return(body: "{}", status: 500)
+      expect { client.patch_json(url, {}) }.to(raise_error(ApiAdaptor::HTTPServerError))
     end
   end
 
