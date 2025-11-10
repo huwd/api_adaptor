@@ -42,9 +42,9 @@ module ApiAdaptor
       @logger ||= ApiAdaptor::NullLogger.new
     end
 
-    def initialize(endpoint_url, options = {})
+    def initialize(endpoint_url = nil, options = {})
       options[:endpoint_url] = endpoint_url
-      raise InvalidAPIURL unless endpoint_url =~ URI::RFC3986_Parser::RFC3986_URI
+      raise InvalidAPIURL if !endpoint_url.nil? && endpoint_url !~ URI::RFC3986_Parser::RFC3986_URI
 
       base_options = { logger: ApiAdaptor::Base.logger }
       default_options = base_options.merge(ApiAdaptor::Base.default_options || {})

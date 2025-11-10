@@ -14,6 +14,10 @@ RSpec.describe ApiAdaptor::Base do
     described_class.default_options = nil
   end
 
+  it "allows initialization without parameters" do
+    expect { ConcreteApi.new }.not_to raise_error
+  end
+
   it "should construct escaped query string" do
     api = ConcreteApi.new("http://foo")
     url = api.url_for_slug("slug", "a" => " ", "b" => "/")
