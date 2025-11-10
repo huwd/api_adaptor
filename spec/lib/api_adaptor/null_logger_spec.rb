@@ -14,6 +14,22 @@ RSpec.describe ApiAdaptor::NullLogger do
   it { is_expected.to respond_to(:info) }
   it { is_expected.to respond_to(:debug) }
 
+  it "returns nil when calling info" do
+    expect(logger.info("some message")).to be_nil
+  end
+
+  it "returns nil when calling fatal" do
+    expect(logger.fatal("some message")).to be_nil
+  end
+
+  it "returns nil when calling unknown" do
+    expect(logger.unknown("some message")).to be_nil
+  end
+
+  it "accepts multiple args and returns nil for info" do
+    expect(logger.info("msg", key: "value")).to be_nil
+  end
+
   it "returns false for debug?" do
     expect(logger).not_to be_debug
   end
