@@ -75,7 +75,7 @@ module MyApiAdaptor
 end
 ```
 
-The intented convetion is to have test helpers ship alongside the actual Adaptor code.
+The intended convention is to have test helpers ship alongside the actual Adaptor code.
 See [WikiData examples here](https://github.com/huwd/wikidata_adaptor/blob/main/lib/wikidata_adaptor/test_helpers/rest_api.rb).
 This allows other applications that integrate the API Adaptor to easily mock out calls and recieve representative data back.
 
