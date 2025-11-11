@@ -42,25 +42,6 @@ RSpec.describe ApiAdaptor::JsonClient do
       expect(client.logger).to eq(custom_logger)
     end
 
-    it "govuk headers are included in requests if present" do
-      ApiAdaptor::Headers.set_header(:govuk_request_id, "12345")
-      ApiAdaptor::Headers.set_header(:govuk_original_url, "http://example.com")
-      stub_request(:get, "http://some.other.endpoint/some.json").to_return(status: 200)
-      ApiAdaptor::JsonClient.new.get_json("http://some.other.endpoint/some.json")
-      assert_requested(:get, %r{/some.json}) do |request|
-        (request.headers["Govuk-Request-Id"] == "12345") and (request.headers["Govuk-Original-Url"] == "http://example.com")
-      end
-    end
-
-    it "govuk headers ignored in requests if not present" do
-      ApiAdaptor::Headers.set_header(:x_govuk_authenticated_user, "")
-      stub_request(:get, "http://some.other.endpoint/some.json").to_return(status: 200)
-      ApiAdaptor::JsonClient.new.get_json("http://some.other.endpoint/some.json")
-      assert_requested(:get, %r{/some.json}) do |request|
-        !request.headers.key?("X-Govuk-Authenticated-User")
-      end
-    end
-
     it "additional headers passed in do not get modified" do
       stub_request(:get, "http://some.other.endpoint/some.json").to_return(status: 200)
       headers = { "HEADER-A" => "A" }

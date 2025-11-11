@@ -14,9 +14,9 @@ module ApiAdaptor
   #
   # Example:
   #
-  #   r = Response.new(response, web_urls_relative_to: "https://www.gov.uk")
+  #   r = Response.new(response, web_urls_relative_to: "https://www.example.com")
   #   r['results'][0]['web_url']
-  #   => "/bank-holidays"
+  #   => "/path"
   class Response
     extend Forwardable
     include Enumerable
