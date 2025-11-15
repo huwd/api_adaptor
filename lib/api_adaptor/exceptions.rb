@@ -43,6 +43,8 @@ module ApiAdaptor
 
   class HTTPUnprocessableEntity < HTTPClientError; end
 
+  class HTTPUnprocessableContent < HTTPClientError; end
+
   class HTTPBadRequest < HTTPClientError; end
 
   class HTTPTooManyRequests < HTTPIntermittentClientError; end
