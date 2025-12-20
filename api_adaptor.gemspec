@@ -32,7 +32,7 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
   spec.add_dependency "addressable", "~> 2.8"
   spec.add_dependency "base64", "~> 0.3"
-  spec.add_dependency "bigdecimal", "~> 3.3"
+  spec.add_dependency "bigdecimal", ">= 3.3", "< 5.0"
   spec.add_dependency "link_header", "~> 0.0.8"
   spec.add_dependency "rest-client", "~> 2.1"
 

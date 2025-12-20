@@ -4,7 +4,7 @@ PATH
     api_adaptor (0.1.0)
       addressable (~> 2.8)
       base64 (~> 0.3)
-      bigdecimal (~> 3.3)
+      bigdecimal (>= 3.3, < 5.0)
       link_header (~> 0.0.8)
       rest-client (~> 2.1)
 
@@ -15,7 +15,7 @@ GEM
       public_suffix (>= 2.0.2, < 7.0)
     ast (2.4.3)
     base64 (0.3.0)
-    bigdecimal (3.3.1)
+    bigdecimal (4.0.1)
     crack (1.0.1)
       bigdecimal
       rexml
