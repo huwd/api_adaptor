@@ -6,6 +6,7 @@ PATH
       base64 (~> 0.3)
       bigdecimal (>= 3.3, < 5.0)
       link_header (~> 0.0.8)
+      logger (>= 1.6, < 2.0)
       rest-client (~> 2.1)
 
 GEM
@@ -30,6 +31,7 @@ GEM
     language_server-protocol (3.17.0.5)
     link_header (0.0.8)
     lint_roller (1.1.0)
+    logger (1.7.0)
     mime-types (3.5.2)
       mime-types-data (~> 3.2015)
     mime-types-data (3.2023.1205)
