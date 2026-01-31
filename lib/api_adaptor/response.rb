@@ -10,13 +10,12 @@ module ApiAdaptor
   # API endpoints should return absolute URLs so that they make sense outside of the
   # domain context. However on systems within an API we want to present relative URLs.
   # By specifying a base URI, this will convert all matching web_urls into relative URLs
-  # This is useful on non-canonical frontends, such as those in staging environments.
   #
   # Example:
   #
-  #   r = Response.new(response, web_urls_relative_to: "https://www.gov.uk")
+  #   r = Response.new(response, web_urls_relative_to: "https://www.example.com")
   #   r['results'][0]['web_url']
-  #   => "/bank-holidays"
+  #   => "/foo"
   class Response
     extend Forwardable
     include Enumerable
