@@ -42,6 +42,90 @@ You can also get a raw response from the API
 client.get_raw("http://some.endpoint/json")
 ```
 
+### Redirects (3xx)
+
+Some APIs return a `3xx` response (commonly `307`/`308`) with a `Location` header that points to the “real” URL.
+`ApiAdaptor::JsonClient` follows these redirects in a controlled way so callers consistently receive a final JSON response.
+
+#### Defaults
+
+- Redirects are followed for `GET`/`HEAD` when the status is `301`, `302`, `303`, `307`, or `308`.
+- `max_redirects` defaults to `3`.
+- Cross-origin redirects (scheme/host/port change) are allowed by default, but credentials are **not** forwarded.
+- Non-GET requests (`POST`, `PUT`, `PATCH`, `DELETE`) do **not** follow redirects by default.
+
+#### Configuration
+
+You can configure redirect behaviour by passing options into your `ApiAdaptor::Base` subclass (they are forwarded to `ApiAdaptor::JsonClient`):
+
+```ruby
+client = MyApi.new(
+  "https://example.com",
+  max_redirects: 3,
+  allow_cross_origin_redirects: true,
+  forward_auth_on_cross_origin_redirects: false,
+  follow_non_get_redirects: false
+)
+
+client.get_json("https://example.com/some/endpoint.json")
+```
+
+Or, if you are using `ApiAdaptor::JsonClient` directly:
+
+```ruby
+client = ApiAdaptor::JsonClient.new(
+  bearer_token: "SOME_BEARER_TOKEN",
+  max_redirects: 3,
+  allow_cross_origin_redirects: true,
+  forward_auth_on_cross_origin_redirects: false
+)
+
+client.get_json("https://example.com/some/endpoint.json")
+```
+
+#### Security: auth and cross-origin redirects
+
+Following redirects across origins can accidentally leak credentials (for example `Authorization` bearer tokens) to an unexpected host.
+To reduce risk:
+
+- By default, when the redirect target is cross-origin, `Authorization` is stripped and basic auth is not applied.
+- To completely prevent cross-origin redirects, set `allow_cross_origin_redirects: false`.
+- Only set `forward_auth_on_cross_origin_redirects: true` if you fully trust the redirect target.
+
+#### Non-GET redirects (risk of replay)
+
+Redirects for non-GET requests are risky because they may cause a request to be replayed (and potentially create duplicate side effects).
+For that reason, redirect-following is disabled for non-GET requests by default.
+
+If you do want to follow `307`/`308` for non-GET requests, you can opt in:
+
+```ruby
+client = MyApi.new(
+  "https://example.com",
+  follow_non_get_redirects: true
+)
+
+client.post_json("https://example.com/some/endpoint.json", { "a" => 1 })
+```
+
+#### Handling redirect failures
+
+You can rescue these redirect-specific exceptions:
+
+- `ApiAdaptor::TooManyRedirects` (exceeded `max_redirects`)
+- `ApiAdaptor::RedirectLocationMissing` (a redirect response without a usable `Location`)
+
+Example:
+
+```ruby
+begin
+  client.get_json("https://example.com/some/endpoint.json")
+rescue ApiAdaptor::TooManyRedirects, ApiAdaptor::RedirectLocationMissing => e
+  # handle / log / retry / surface a friendly message
+  raise e
+end
+```
+
 ### Conventional usage
 
 An example of how to use this repository to bootstrap an API can be found in the [WikiData REST adaptor](https://github.com/huwd/wikidata_adaptor) it was built for.
