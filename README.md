@@ -17,6 +17,20 @@ If bundler is not being used to manage dependencies, install the gem by executin
 gem install api_adaptor
 ```
 
+## Releasing
+
+Publishing is handled by GitHub Actions when you push a version tag.
+
+- RubyGems publishing uses **Trusted Publishing (OIDC)** via `rubygems/release-gem`
+- Ensure `api_adaptor` is configured on RubyGems.org with this repository/workflow as a trusted publisher.
+- Bump `ApiAdaptor::VERSION` in `lib/api_adaptor/version.rb`.
+- Tag the release as `vX.Y.Z` (must match `ApiAdaptor::VERSION`) and push the tag:
+
+```shell
+git tag v0.1.1
+git push origin v0.1.1
+```
+
 ## Usage
 
 Use the ApiAdaptor as a base class for your API wrapper, for example:

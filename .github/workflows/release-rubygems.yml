@@ -1,0 +1,57 @@
+name: Release RubyGem
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+
+jobs:
+  release:
+    name: Build and publish to RubyGems
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          show-progress: false
+          persist-credentials: false
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@8d27f39a5e7ad39aebbcbd1324f7af020229645c # v1
+        with:
+          bundler-cache: true
+          ruby-version: ruby
+
+      - name: Validate tag format
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG_FULL="${GITHUB_REF_NAME}"
+          if [[ ! "${TAG_FULL}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z]+)*$ ]]; then
+            echo "ERROR: Tag '${TAG_FULL}' is not a version tag like vX.Y.Z (optionally with pre-release/build suffix)." >&2
+            exit 1
+          fi
+
+      - name: Verify tag matches gem version
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF_NAME#v}"
+          VERSION="$(ruby -r ./lib/api_adaptor/version -e 'print ApiAdaptor::VERSION')"
+          echo "Tag version: ${TAG}"
+          echo "Gem version: ${VERSION}"
+          if [[ "${TAG}" != "${VERSION}" ]]; then
+            echo "ERROR: Tag version (${TAG}) does not match gem version (${VERSION})." >&2
+            exit 1
+          fi
+
+      - name: Run tests
+        run: bundle exec rspec
+
+      - uses: rubygems/release-gem@v1
