@@ -278,12 +278,54 @@ RSpec.describe ApiAdaptor::JsonClient do
         expect(result["a"]).to(eq(1))
       end
 
+      it "follows 308 permanent redirect" do
+        url = "http://some.endpoint/some.json"
+        new_url = "http://some.endpoint/other.json"
+        stub_request(:get, url).to_return(body: "", status: 308, headers: { "Location" => new_url })
+        stub_request(:get, new_url).to_return(body: "{\"a\": 1}", status: 200)
+        result = client.get_json(url)
+        expect(result["a"]).to(eq(1))
+      end
+
+      it "resolves relative Location redirects" do
+        url = "http://some.endpoint/some.json"
+        stub_request(:get, url).to_return(body: "", status: 308, headers: { "Location" => "/other.json" })
+        stub_request(:get, "http://some.endpoint/other.json").to_return(body: "{\"a\": 1}", status: 200)
+        result = client.get_json(url)
+        expect(result["a"]).to(eq(1))
+      end
+
+      it "raises RedirectLocationMissing when Location header is absent" do
+        url = "http://some.endpoint/some.json"
+        stub_request(:get, url).to_return(body: "", status: 307)
+        expect { client.get_json(url) }.to(raise_error(ApiAdaptor::RedirectLocationMissing))
+      end
+
+      it "strips bearer auth across cross-origin redirects" do
+        client = ApiAdaptor::JsonClient.new(bearer_token: "SOME_BEARER_TOKEN")
+        url = "http://some.endpoint/some.json"
+        new_url = "http://some.other.endpoint/other.json"
+        stub_request(:get, url).to_return(body: "", status: 307, headers: { "Location" => new_url })
+        stub_request(:get, new_url).to_return(body: "{\"a\": 1}", status: 200)
+
+        result = client.get_json(url)
+        expect(result["a"]).to(eq(1))
+
+        assert_requested(:get, url) do |request|
+          request.headers["Authorization"] == "Bearer SOME_BEARER_TOKEN"
+        end
+
+        assert_requested(:get, new_url) do |request|
+          !request.headers.key?("Authorization")
+        end
+      end
+
       it "should handle infinite 302 redirects" do
         url = "http://some.endpoint/some.json"
         redirect = { body: "", status: 302, headers: { "Location" => url } }
         failure = ->(_request) { flunk("Request called too many times") }
-        stub_request(:get, url).to_return(redirect).times(11).then.to_return(failure)
-        expect { client.get_json(url) }.to(raise_error(ApiAdaptor::HTTPErrorResponse))
+        stub_request(:get, url).to_return(redirect).times(4).then.to_return(failure)
+        expect { client.get_json(url) }.to(raise_error(ApiAdaptor::TooManyRedirects))
       end
 
       it "should handle mutual 302 redirects" do
@@ -292,9 +334,9 @@ RSpec.describe ApiAdaptor::JsonClient do
         first_redirect = { body: "", status: 302, headers: { "Location" => second_url } }
         second_redirect = { body: "", status: 302, headers: { "Location" => first_url } }
         failure = ->(_request) { flunk("Request called too many times") }
-        stub_request(:get, first_url).to_return(first_redirect).times(6).then.to_return(failure)
-        stub_request(:get, second_url).to_return(second_redirect).times(6).then.to_return(failure)
-        expect { client.get_json(first_url) }.to(raise_error(ApiAdaptor::HTTPErrorResponse))
+        stub_request(:get, first_url).to_return(first_redirect).times(2).then.to_return(failure)
+        stub_request(:get, second_url).to_return(second_redirect).times(2).then.to_return(failure)
+        expect { client.get_json(first_url) }.to(raise_error(ApiAdaptor::TooManyRedirects))
       end
     end
   end
