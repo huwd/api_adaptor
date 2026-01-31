@@ -4,6 +4,10 @@ module ApiAdaptor
   # Abstract error class
   class BaseError < StandardError; end
 
+  class TooManyRedirects < BaseError; end
+
+  class RedirectLocationMissing < BaseError; end
+
   class EndpointNotFound < BaseError; end
 
   class TimedOutException < BaseError; end
