@@ -39,6 +39,7 @@ module ApiAdaptor
     end
 
     DEFAULT_TIMEOUT_IN_SECONDS = 4
+    DEFAULT_MAX_REDIRECTS = 3
 
     def get_raw!(url)
       do_raw_request(:get, url)
@@ -154,49 +155,173 @@ module ApiAdaptor
       )
     end
 
+    def max_redirects
+      value = options.fetch(:max_redirects, DEFAULT_MAX_REDIRECTS)
+      value = value.to_i
+      value.negative? ? 0 : value
+    end
+
+    def follow_non_get_redirects?
+      options.fetch(:follow_non_get_redirects, false)
+    end
+
+    def allow_cross_origin_redirects?
+      options.fetch(:allow_cross_origin_redirects, true)
+    end
+
+    def forward_auth_on_cross_origin_redirects?
+      options.fetch(:forward_auth_on_cross_origin_redirects, false)
+    end
+
+    def redirect_status_code?(code)
+      code.to_i >= 300 && code.to_i <= 399
+    end
+
+    def follow_redirect_code?(method, code)
+      code = code.to_i
+      return false unless redirect_status_code?(code)
+      return false if code == 304
+      return false if [305, 306].include?(code)
+
+      if %i[get head].include?(method)
+        [301, 302, 303, 307, 308].include?(code)
+      else
+        return true if follow_non_get_redirects? && [307, 308].include?(code)
+
+        false
+      end
+    end
+
+    def response_location(response)
+      return nil unless response
+
+      headers = response.headers || {}
+      headers[:location] || headers["location"] || headers["Location"]
+    end
+
+    def resolve_location(current_url, location)
+      URI.join(current_url, location.to_s).to_s
+    rescue URI::Error
+      location.to_s
+    end
+
+    def origin_for(url)
+      uri = URI.parse(url)
+      [uri.scheme, uri.host, uri.port]
+    end
+
     def do_request(method, url, params = nil, additional_headers = {})
-      loggable = { request_uri: url, start_time: Time.now.to_f }
-      start_logging = loggable.merge(action: "start")
-      logger.debug start_logging.to_json
+      current_method = method
+      current_url = url
+      current_params = params
+      redirects_followed = 0
 
-      method_params = {
-        method:,
-        url:
-      }
+      initial_origin = begin
+        origin_for(url)
+      rescue URI::InvalidURIError => e
+        raise ApiAdaptor::InvalidUrl, e.message
+      end
 
-      method_params[:payload] = params
-      method_params = with_timeout(method_params)
-      method_params = with_headers(method_params, self.class.default_request_headers, additional_headers)
-      method_params = with_auth_options(method_params)
-      method_params = with_ssl_options(method_params) if URI.parse(url).is_a? URI::HTTPS
+      loop do
+        loggable = { request_uri: current_url, start_time: Time.now.to_f }
+        start_logging = loggable.merge(action: "start")
+        logger.debug start_logging.to_json
 
-      ::RestClient::Request.execute(method_params)
-    rescue Errno::ECONNREFUSED => e
-      logger.error loggable.merge(status: "refused", error_message: e.message, error_class: e.class.name,
-                                  end_time: Time.now.to_f).to_json
-      raise ApiAdaptor::EndpointNotFound, "Could not connect to #{url}"
-    rescue RestClient::Exceptions::Timeout => e
-      logger.error loggable.merge(status: "timeout", error_message: e.message, error_class: e.class.name,
-                                  end_time: Time.now.to_f).to_json
-      raise ApiAdaptor::TimedOutException, e.message
-    rescue URI::InvalidURIError => e
-      logger.error loggable.merge(status: "invalid_uri", error_message: e.message, error_class: e.class.name,
-                                  end_time: Time.now.to_f).to_json
-      raise ApiAdaptor::InvalidUrl, e.message
-    rescue RestClient::Exception => e
-      # Log the error here, since we have access to loggable, but raise the
-      # exception up to the calling method to deal with
-      loggable.merge!(status: e.http_code, end_time: Time.now.to_f, body: e.http_body)
-      logger.warn loggable.to_json
-      raise
-    rescue Errno::ECONNRESET => e
-      logger.error loggable.merge(status: "connection_reset", error_message: e.message, error_class: e.class.name,
-                                  end_time: Time.now.to_f).to_json
-      raise ApiAdaptor::TimedOutException, e.message
-    rescue SocketError => e
-      logger.error loggable.merge(status: "socket_error", error_message: e.message, error_class: e.class.name,
-                                  end_time: Time.now.to_f).to_json
-      raise ApiAdaptor::SocketErrorException, e.message
+        method_params = {
+          method: current_method,
+          url: current_url,
+          max_redirects: 0
+        }
+        method_params[:payload] = current_params
+        method_params = with_timeout(method_params)
+        method_params = with_headers(method_params, self.class.default_request_headers, additional_headers)
+
+        begin
+          current_origin = origin_for(current_url)
+          cross_origin = current_origin != initial_origin
+          include_auth = !cross_origin || forward_auth_on_cross_origin_redirects?
+          method_params = with_auth_options(method_params) if include_auth
+          unless include_auth
+            if method_params[:headers]
+              method_params[:headers].delete("Authorization")
+              method_params[:headers].delete("Proxy-Authorization")
+            end
+            method_params.delete(:user)
+            method_params.delete(:password)
+          end
+
+          method_params = with_ssl_options(method_params) if URI.parse(current_url).is_a? URI::HTTPS
+          return ::RestClient::Request.execute(method_params)
+        rescue RestClient::ExceptionWithResponse => e
+          if e.is_a?(RestClient::Exceptions::Timeout)
+            logger.error loggable.merge(status: "timeout", error_message: e.message, error_class: e.class.name,
+                                        end_time: Time.now.to_f).to_json
+            raise ApiAdaptor::TimedOutException, e.message
+          end
+
+          status_code = (e.http_code || e.response&.code).to_i
+
+          raise ApiAdaptor::TimedOutException, e.message if status_code == 408
+
+          if follow_redirect_code?(current_method.to_sym, status_code)
+            location = response_location(e.response)
+            raise ApiAdaptor::RedirectLocationMissing, "Redirect response missing Location header for #{current_url}" if location.to_s.strip.empty?
+
+            next_url = resolve_location(current_url, location)
+            begin
+              next_origin = origin_for(next_url)
+            rescue URI::InvalidURIError => e
+              logger.error loggable.merge(status: "invalid_uri", error_message: e.message, error_class: e.class.name,
+                                          end_time: Time.now.to_f).to_json
+              raise ApiAdaptor::InvalidUrl, e.message
+            end
+            if next_origin != initial_origin && !allow_cross_origin_redirects?
+              loggable.merge!(status: status_code, end_time: Time.now.to_f, body: e.http_body)
+              logger.warn loggable.to_json
+              raise
+            end
+
+            raise ApiAdaptor::TooManyRedirects, "Too many redirects (max #{max_redirects}) while requesting #{url}" if redirects_followed >= max_redirects
+
+            redirects_followed += 1
+            current_url = next_url
+
+            next
+          end
+
+          loggable.merge!(status: status_code, end_time: Time.now.to_f, body: e.http_body)
+          logger.warn loggable.to_json
+          raise
+        rescue Errno::ECONNREFUSED => e
+          logger.error loggable.merge(status: "refused", error_message: e.message, error_class: e.class.name,
+                                      end_time: Time.now.to_f).to_json
+          raise ApiAdaptor::EndpointNotFound, "Could not connect to #{current_url}"
+        rescue Timeout::Error => e
+          logger.error loggable.merge(status: "timeout", error_message: e.message, error_class: e.class.name,
+                                      end_time: Time.now.to_f).to_json
+          raise ApiAdaptor::TimedOutException, e.message
+        rescue RestClient::Exceptions::Timeout => e
+          logger.error loggable.merge(status: "timeout", error_message: e.message, error_class: e.class.name,
+                                      end_time: Time.now.to_f).to_json
+          raise ApiAdaptor::TimedOutException, e.message
+        rescue URI::InvalidURIError => e
+          logger.error loggable.merge(status: "invalid_uri", error_message: e.message, error_class: e.class.name,
+                                      end_time: Time.now.to_f).to_json
+          raise ApiAdaptor::InvalidUrl, e.message
+        rescue RestClient::Exception => e
+          loggable.merge!(status: e.http_code, end_time: Time.now.to_f, body: e.http_body)
+          logger.warn loggable.to_json
+          raise
+        rescue Errno::ECONNRESET => e
+          logger.error loggable.merge(status: "connection_reset", error_message: e.message, error_class: e.class.name,
+                                      end_time: Time.now.to_f).to_json
+          raise ApiAdaptor::TimedOutException, e.message
+        rescue SocketError => e
+          logger.error loggable.merge(status: "socket_error", error_message: e.message, error_class: e.class.name,
+                                      end_time: Time.now.to_f).to_json
+          raise ApiAdaptor::SocketErrorException, e.message
+        end
+      end
     end
   end
 end
