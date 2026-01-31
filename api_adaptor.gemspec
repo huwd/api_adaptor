@@ -34,6 +34,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency "base64", "~> 0.3"
   spec.add_dependency "bigdecimal", ">= 3.3", "< 5.0"
   spec.add_dependency "link_header", "~> 0.0.8"
+  spec.add_dependency "logger", ">= 1.6", "< 2.0"
   spec.add_dependency "rest-client", "~> 2.1"
 
   spec.add_development_dependency "rake", "~> 13.0"
