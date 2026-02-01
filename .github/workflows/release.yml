@@ -53,13 +53,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          VERSION="$(ruby -r ./lib/api_adaptor/version -e 'puts ApiAdaptor::VERSION')"
           if [ "${{ github.event_name }}" = "push" ]; then
             TAG="${GITHUB_REF_NAME}"
           else
             # For workflow_dispatch, use the version from the code
-            TAG="v$(ruby -r ./lib/api_adaptor/version -e 'puts ApiAdaptor::VERSION')"
+            TAG="v${VERSION}"
           fi
-          VERSION="$(ruby -r ./lib/api_adaptor/version -e 'puts ApiAdaptor::VERSION')"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
