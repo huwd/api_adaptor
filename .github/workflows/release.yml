@@ -36,27 +36,47 @@ jobs:
           ruby-version: ruby
           bundler-cache: true
 
+      - name: Validate tag format
+        if: github.event_name == 'push'
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF_NAME}"
+          if ! echo "$TAG" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z]+)*$'; then
+            echo "Error: Tag '$TAG' does not match expected format (e.g., v1.0.0, v1.0.0-beta.1)"
+            exit 1
+          fi
+          echo "Tag format is valid: $TAG"
+
       - name: Determine version + tag
         id: meta
         shell: bash
         run: |
           set -euo pipefail
-          TAG="${GITHUB_REF_NAME}"
+          if [ "${{ github.event_name }}" = "push" ]; then
+            TAG="${GITHUB_REF_NAME}"
+          else
+            # For workflow_dispatch, use the version from the code
+            TAG="v$(ruby -r ./lib/api_adaptor/version -e 'puts ApiAdaptor::VERSION')"
+          fi
           VERSION="$(ruby -r ./lib/api_adaptor/version -e 'puts ApiAdaptor::VERSION')"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
-      - name: Preflight: tag must match ApiAdaptor::VERSION
+      - name: "Preflight: tag must match ApiAdaptor::VERSION"
         shell: bash
         run: |
           set -euo pipefail
           test "v${{ steps.meta.outputs.version }}" = "${{ steps.meta.outputs.tag }}"
 
-      - name: Preflight: CHANGELOG must mention this version
+      - name: "Preflight: CHANGELOG must mention this version"
         shell: bash
         run: |
           set -euo pipefail
           grep -Eq "(^##\\s*\\[?${{ steps.meta.outputs.version }}\\]?)|(^##\\s*${{ steps.meta.outputs.version }})" CHANGELOG.md
+
+      - name: Run test suite
+        run: bundle exec rspec
 
       - name: Build gem
         run: bundle exec rake build
