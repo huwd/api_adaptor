@@ -76,6 +76,7 @@ jobs:
           grep -Eq "(^##\\s*\\[?${{ steps.meta.outputs.version }}\\]?)|(^##\\s*${{ steps.meta.outputs.version }})" CHANGELOG.md
 
       - name: Run test suite
+        shell: bash
         run: bundle exec rspec
 
       - name: Build gem
