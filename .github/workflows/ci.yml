@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@8d27f39a5e7ad39aebbcbd1324f7af020229645c # v1.287.0
+        with:
+          ruby-version: ruby
+          bundler-cache: true
+
+      - name: Run tests
+        run: bundle exec rspec
+
+      - name: Build gem
+        run: bundle exec rake build
+
+      - name: Install built gem and require it
+        run: |
+          set -euo pipefail
+          GEM_FILE="$(ls -1 pkg/*.gem | head -n 1)"
+          gem install "$GEM_FILE" --no-document
+          ruby -r api_adaptor -e 'puts ApiAdaptor::VERSION'
