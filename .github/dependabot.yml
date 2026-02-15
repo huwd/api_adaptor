@@ -1,37 +1,46 @@
 version: 2
 updates:
+  # Bundler dependencies
+  # Weekly schedule provides 7-day cooldown between update checks
   - package-ecosystem: "bundler"
     directory: "/"
-    cooldown:
-      default-days: 7
-    groups:
-      bundler-production-minor-patch:
-        dependency-type: "production"
-        update-types:
-          - "minor"
-          - "patch"
-      bundler-development-minor-patch:
-        dependency-type: "development"
-        update-types:
-          - "minor"
-          - "patch"
     schedule:
-      interval: "weekly"
+      interval: "weekly" # 7-day cooldown
       day: "saturday"
       time: "06:00"
       timezone: "UTC"
-    open-pull-requests-limit: 10
-  - package-ecosystem: "github-actions"
-    directory: "/"
     cooldown:
       default-days: 7
+      semver-major-days: 30
+      semver-minor-days: 7
+      semver-patch-days: 3
+    open-pull-requests-limit: 3
     groups:
-      github-actions-all:
+      # Group all minor and patch updates together
+      bundler-dependencies:
         patterns:
           - "*"
+        update-types:
+          - "minor"
+          - "patch"
+
+  # GitHub Actions
+  # Weekly schedule provides 7-day cooldown between update checks
+  - package-ecosystem: "github-actions"
+    directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "weekly" # 7-day cooldown
       day: "saturday"
       time: "06:30"
       timezone: "UTC"
-    open-pull-requests-limit: 5
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 2
+    groups:
+      # Group all minor and patch updates together
+      github-actions:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
