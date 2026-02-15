@@ -167,8 +167,8 @@ bundle exec rspec spec/api_adaptor/json_client_spec.rb:42  # Run specific line
 
 The gem reads app metadata from environment variables for User-Agent headers:
 
-- `APP_NAME` - Application name (default: "ApiAdaptor")
-- `APP_VERSION` - Application version (default: gem version)
+- `APP_NAME` - Application name (default: "Ruby ApiAdaptor App")
+- `APP_VERSION` - Application version (default: "Version not stated")
 - `APP_CONTACT` - Contact email/URL for API providers
 
 ### Example .env
