@@ -311,9 +311,9 @@ module ApiAdaptor
     def with_headers(method_params, default_headers, additional_headers)
       method_params.merge(
         headers: default_headers
-          .merge(method_params[:headers] || {})
-          .merge(ApiAdaptor::Headers.headers)
-          .merge(additional_headers)
+                 .merge(method_params[:headers] || {})
+                 .merge(ApiAdaptor::Headers.headers)
+                 .merge(additional_headers)
       )
     end
 
