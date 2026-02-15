@@ -25,13 +25,13 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
           show-progress: false
 
       - name: Set up Ruby
-        uses: ruby/setup-ruby@8d27f39a5e7ad39aebbcbd1324f7af020229645c # v1
+        uses: ruby/setup-ruby@8d27f39a5e7ad39aebbcbd1324f7af020229645c # v1.288.0
         with:
           ruby-version: ruby
           bundler-cache: true
@@ -95,4 +95,4 @@ jobs:
 
       - name: Publish to RubyGems (Trusted Publishing / OIDC)
         if: ${{ github.event_name == 'push' || inputs.dry_run == 'false' }}
-        uses: rubygems/release-gem@1c162a739e8b4cb21a676e97b087e8268d8fc40b # v1
+        uses: rubygems/release-gem@1c162a739e8b4cb21a676e97b087e8268d8fc40b # v1.1.2
