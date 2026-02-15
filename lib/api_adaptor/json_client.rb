@@ -9,11 +9,68 @@ require_relative "response"
 require "rest-client"
 
 module ApiAdaptor
+  # HTTP client for JSON APIs with comprehensive redirect handling and authentication support.
+  #
+  # JSONClient provides a low-level interface for making HTTP requests to JSON APIs. It handles
+  # automatic JSON parsing, configurable redirect following, authentication (bearer token and basic auth),
+  # timeout management, and comprehensive error handling.
+  #
+  # @example Basic usage with bearer token
+  #   client = JSONClient.new(bearer_token: "abc123")
+  #   response = client.get_json("https://api.example.com/users")
+  #   users = response["data"]
+  #
+  # @example Custom timeout and redirect configuration
+  #   client = JSONClient.new(
+  #     timeout: 10,
+  #     max_redirects: 5,
+  #     follow_non_get_redirects: true
+  #   )
+  #
+  # @example With basic authentication
+  #   client = JSONClient.new(
+  #     basic_auth: { user: "username", password: "password" }
+  #   )
+  #
+  # @example Disable cross-origin redirects for security
+  #   client = JSONClient.new(
+  #     allow_cross_origin_redirects: false
+  #   )
+  #
+  # @see Base for a higher-level API client framework
   class JsonClient
     include ApiAdaptor::ExceptionHandling
 
+    # @return [Logger] Logger instance for request/response logging
+    # @return [Hash] Client configuration options
     attr_accessor :logger, :options
 
+    # Initializes a new JSON HTTP client
+    #
+    # @param options [Hash] Configuration options
+    # @option options [String] :bearer_token Bearer token for Authorization header
+    # @option options [Hash] :basic_auth Basic authentication credentials with :user and :password keys
+    # @option options [Integer] :timeout Request timeout in seconds (default: 4)
+    # @option options [Integer] :max_redirects Maximum number of redirects to follow (default: 3)
+    # @option options [Boolean] :allow_cross_origin_redirects Allow redirects to different origins (default: true)
+    # @option options [Boolean] :forward_auth_on_cross_origin_redirects Forward auth headers on cross-origin redirects (default: false, security risk if enabled)
+    # @option options [Boolean] :follow_non_get_redirects Follow redirects for POST/PUT/PATCH/DELETE (default: false, only 307/308 supported)
+    # @option options [Logger] :logger Custom logger instance (default: NullLogger)
+    #
+    # @raise [RuntimeError] If disable_timeout or negative timeout is provided
+    #
+    # @example Default configuration
+    #   client = JSONClient.new
+    #   # timeout: 4s, max_redirects: 3, only GET/HEAD follow redirects
+    #
+    # @example Full configuration
+    #   client = JSONClient.new(
+    #     bearer_token: "secret",
+    #     timeout: 10,
+    #     max_redirects: 5,
+    #     allow_cross_origin_redirects: false,
+    #     logger: Logger.new($stdout)
+    #   )
     def initialize(options = {})
       raise "It is no longer possible to disable the timeout." if options[:disable_timeout] || options[:timeout].to_i.negative?
 
@@ -21,6 +78,9 @@ module ApiAdaptor
       @options = options
     end
 
+    # Returns default HTTP headers for all requests
+    #
+    # @return [Hash] Default headers including Accept and User-Agent
     def self.default_request_headers
       {
         "Accept" => "application/json",
@@ -28,52 +88,161 @@ module ApiAdaptor
       }
     end
 
+    # Returns default headers for requests with JSON body
+    #
+    # @return [Hash] Default headers plus Content-Type: application/json
     def self.default_request_with_json_body_headers
       default_request_headers.merge(json_body_headers)
     end
 
+    # Returns Content-Type header for JSON requests
+    #
+    # @return [Hash] Content-Type header
     def self.json_body_headers
       {
         "Content-Type" => "application/json"
       }
     end
 
+    # Default request timeout in seconds
     DEFAULT_TIMEOUT_IN_SECONDS = 4
+
+    # Default maximum number of redirects to follow
     DEFAULT_MAX_REDIRECTS = 3
 
+    # Performs a GET request and returns the raw response
+    #
+    # @param url [String] The URL to request
+    #
+    # @return [RestClient::Response] Raw HTTP response
+    #
+    # @raise [HTTPClientError, HTTPServerError] On HTTP errors
+    # @raise [TimedOutException] On timeout
+    # @raise [EndpointNotFound] On connection refused
+    # @raise [InvalidUrl] On invalid URI
+    # @raise [TooManyRedirects] When max_redirects is exceeded
+    # @raise [RedirectLocationMissing] When redirect lacks Location header
     def get_raw!(url)
       do_raw_request(:get, url)
     end
 
+    # Performs a GET request and returns the raw response (alias for get_raw!)
+    #
+    # @param url [String] The URL to request
+    #
+    # @return [RestClient::Response] Raw HTTP response
+    #
+    # @see #get_raw!
     def get_raw(url)
       get_raw!(url)
     end
 
+    # Performs a GET request and parses the JSON response
+    #
+    # @param url [String] The URL to request
+    # @param additional_headers [Hash] Additional HTTP headers to include
+    # @yield [response] Optional block to create custom response object
+    # @yieldparam response [RestClient::Response] The raw HTTP response
+    # @yieldreturn [Object] Custom response object
+    #
+    # @return [Response, Object] Response object or custom object from block
+    #
+    # @raise [HTTPClientError, HTTPServerError] On HTTP errors
+    # @raise [TimedOutException] On timeout
+    #
+    # @example Basic usage
+    #   response = client.get_json("https://api.example.com/users")
+    #   users = response["data"]
+    #
+    # @example With custom response class
+    #   users = client.get_json("https://api.example.com/users") do |r|
+    #     UserListResponse.new(r)
+    #   end
     def get_json(url, additional_headers = {}, &create_response)
       do_json_request(:get, url, nil, additional_headers, &create_response)
     end
 
+    # Performs a POST request with JSON body
+    #
+    # @param url [String] The URL to request
+    # @param params [Hash] Data to send as JSON in request body (default: {})
+    # @param additional_headers [Hash] Additional HTTP headers to include
+    #
+    # @return [Response] Response object with parsed JSON
+    #
+    # @raise [HTTPClientError, HTTPServerError] On HTTP errors
+    #
+    # @example
+    #   response = client.post_json("https://api.example.com/users", {
+    #     name: "Alice",
+    #     email: "alice@example.com"
+    #   })
     def post_json(url, params = {}, additional_headers = {})
       do_json_request(:post, url, params, additional_headers)
     end
 
+    # Performs a PUT request with JSON body
+    #
+    # @param url [String] The URL to request
+    # @param params [Hash] Data to send as JSON in request body
+    # @param additional_headers [Hash] Additional HTTP headers to include
+    #
+    # @return [Response] Response object with parsed JSON
+    #
+    # @raise [HTTPClientError, HTTPServerError] On HTTP errors
     def put_json(url, params, additional_headers = {})
       do_json_request(:put, url, params, additional_headers)
     end
 
+    # Performs a PATCH request with JSON body
+    #
+    # @param url [String] The URL to request
+    # @param params [Hash] Data to send as JSON in request body
+    # @param additional_headers [Hash] Additional HTTP headers to include
+    #
+    # @return [Response] Response object with parsed JSON
+    #
+    # @raise [HTTPClientError, HTTPServerError] On HTTP errors
     def patch_json(url, params, additional_headers = {})
       do_json_request(:patch, url, params, additional_headers)
     end
 
+    # Performs a DELETE request with optional JSON body
+    #
+    # @param url [String] The URL to request
+    # @param params [Hash] Optional data to send as JSON in request body (default: {})
+    # @param additional_headers [Hash] Additional HTTP headers to include
+    #
+    # @return [Response] Response object with parsed JSON
+    #
+    # @raise [HTTPClientError, HTTPServerError] On HTTP errors
     def delete_json(url, params = {}, additional_headers = {})
       do_json_request(:delete, url, params, additional_headers)
     end
 
+    # Performs a POST request with multipart/form-data
+    #
+    # @param url [String] The URL to request
+    # @param params [Hash] Multipart form data (may include file uploads)
+    #
+    # @return [Response] Response object
+    #
+    # @example Uploading a file
+    #   client.post_multipart("https://api.example.com/upload", {
+    #     file: File.open("image.jpg", "rb"),
+    #     description: "Profile photo"
+    #   })
     def post_multipart(url, params)
       r = do_raw_request(:post, url, params.merge(multipart: true))
       Response.new(r)
     end
 
+    # Performs a PUT request with multipart/form-data
+    #
+    # @param url [String] The URL to request
+    # @param params [Hash] Multipart form data (may include file uploads)
+    #
+    # @return [Response] Response object
     def put_multipart(url, params)
       r = do_raw_request(:put, url, params.merge(multipart: true))
       Response.new(r)
