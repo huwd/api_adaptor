@@ -9,4 +9,10 @@ require "rubocop/rake_task"
 
 RuboCop::RakeTask.new
 
-task default: %i[spec rubocop]
+require "yard"
+
+YARD::Rake::YardocTask.new(:yard) do |t|
+  t.stats_options = ["--list-undoc"]
+end
+
+task default: %i[spec rubocop yard]
