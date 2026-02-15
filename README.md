@@ -1,5 +1,9 @@
 # ApiAdaptor
 
+[![CI](https://github.com/huwd/api_adaptor/actions/workflows/quality-checks.yml/badge.svg)](https://github.com/huwd/api_adaptor/actions/workflows/quality-checks.yml)
+[![Gem Version](https://badge.fury.io/rb/api_adaptor.svg)](https://badge.fury.io/rb/api_adaptor)
+[![Documentation](https://img.shields.io/badge/docs-YARD-blue.svg)](https://huwd.github.io/api_adaptor/)
+
 A basic adaptor to send HTTP requests and parse the responses.
 Intended to bootstrap the quick writing of Adaptors for specific APIs, without having to write the same old JSON request and processing time and time again.
 
@@ -15,6 +19,17 @@ If bundler is not being used to manage dependencies, install the gem by executin
 
 ```shell
 gem install api_adaptor
+```
+
+## API Documentation
+
+Full API documentation is available at [https://huwd.github.io/api_adaptor/](https://huwd.github.io/api_adaptor/)
+
+Generate documentation locally:
+
+```bash
+bundle exec yard         # Generate docs to doc/
+bundle exec yard server  # Preview at http://localhost:8808
 ```
 
 ## Releasing
@@ -194,6 +209,76 @@ User agent would read
 
 ```text
 test_app/1.0.0 (contact@example.com)
+```
+
+## Development
+
+After checking out the repo, run `bundle install` to install dependencies.
+
+### Running Tests
+
+```bash
+bundle exec rspec        # Run tests only
+bundle exec rubocop      # Run linter only
+bundle exec rake         # Run tests, linter, and build docs
+```
+
+### Code Coverage
+
+SimpleCov tracks test coverage. View the report at `coverage/index.html` after running tests.
+
+Current coverage: 92.3% line, 81.65% branch
+
+### Documentation
+
+Generate YARD documentation:
+
+```bash
+bundle exec yard         # Generate docs to doc/
+bundle exec yard server  # Preview at http://localhost:8808
+bundle exec yard stats   # View documentation coverage
+```
+
+### Quality Standards
+
+- **Tests:** RSpec with WebMock for HTTP mocking
+- **Linting:** RuboCop with rubocop-yard for documentation
+- **Coverage:** SimpleCov (minimum 80% line, 75% branch)
+- **Documentation:** YARD for all public APIs
+
+## Troubleshooting
+
+### Redirects Not Following
+
+By default, only GET/HEAD requests follow redirects. For POST/PUT/PATCH/DELETE:
+
+```ruby
+client = MyApi.new("https://example.com", follow_non_get_redirects: true)
+```
+
+### Timeout Errors
+
+Default timeout is 4 seconds. Configure longer timeouts:
+
+```ruby
+client = MyApi.new("https://example.com", timeout: 10)
+```
+
+### Cross-Origin Redirect Security
+
+By default, auth headers are stripped on cross-origin redirects. To allow (use with caution):
+
+```ruby
+client = MyApi.new(
+  "https://example.com",
+  forward_auth_on_cross_origin_redirects: true  # Security risk!
+)
+```
+
+Or disable cross-origin redirects entirely:
+
+```ruby
+client = MyApi.new("https://example.com", allow_cross_origin_redirects: false)
 ```
 
 ## Contributing
