@@ -3,6 +3,9 @@ AllCops:
   NewCops: disable
   SuggestExtensions: false
 
+plugins:
+  - rubocop-yard
+
 Style/StringLiterals:
   Enabled: true
   EnforcedStyle: double_quotes
@@ -15,7 +18,4 @@ Layout/LineLength:
   Enabled: false
 
 Metrics:
-  Enabled: false
-
-Style/Documentation:
   Enabled: false
