@@ -82,7 +82,10 @@ module ApiAdaptor
         self["max-age"].to_i if key?("max-age")
       end
 
-      # Returns the r-maxage (reverse max age) directive value
+      # Returns the r-maxage directive value
+      #
+      # Note: r-maxage is a non-standard Cache-Control directive and is not part
+      # of RFC 7234. This method exists for compatibility with custom cache implementations.
       #
       # @return [Integer, nil] Reverse maximum age in seconds, or nil if not present
       def reverse_max_age
@@ -92,9 +95,12 @@ module ApiAdaptor
 
       # Returns the s-maxage (shared max age) directive value
       #
+      # The s-maxage directive is like max-age but only applies to shared caches
+      # (e.g., CDNs, proxies). It overrides max-age for shared caches.
+      #
       # @return [Integer, nil] Shared maximum age in seconds, or nil if not present
       def shared_max_age
-        self["s-maxage"].to_i if key?("r-maxage")
+        self["s-maxage"].to_i if key?("s-maxage")
       end
       alias s_maxage shared_max_age
 

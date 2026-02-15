@@ -204,7 +204,8 @@ RSpec.describe ApiAdaptor::JsonClient do
 
       it "raises HTTPClientError if the endpoint returns any other 4xx status" do
         url = "http://some.endpoint/some.json"
-        statuses = (400..499).to_a - [400, 401, 403, 404, 410, 413, 422, 429]
+        # Exclude statuses with specific handling: 400, 401, 403, 404, 408 (timeout), 410, 413, 422, 429
+        statuses = (400..499).to_a - [400, 401, 403, 404, 408, 410, 413, 422, 429]
         stub_request(:get, url).to_return(body: "{}", status: statuses.sample)
         expect { client.get_json(url) }.to(raise_error(ApiAdaptor::HTTPClientError))
       end
