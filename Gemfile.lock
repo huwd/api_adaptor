@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    api_adaptor (0.1.0)
+    api_adaptor (1.0.0)
       addressable (~> 2.8)
       base64 (~> 0.3)
       bigdecimal (>= 3.3, < 5.0)
@@ -45,6 +45,7 @@ GEM
     racc (1.8.1)
     rainbow (3.1.1)
     rake (13.3.1)
+    redcarpet (3.6.1)
     regexp_parser (2.11.3)
     rest-client (2.1.0)
       http-accept (>= 1.7.0, < 2.0)
@@ -79,6 +80,10 @@ GEM
     rubocop-ast (1.49.0)
       parser (>= 3.3.7.2)
       prism (~> 1.7)
+    rubocop-yard (1.1.0)
+      lint_roller
+      rubocop (~> 1.72)
+      yard
     ruby-progressbar (1.13.0)
     simplecov (0.22.0)
       docile (~> 1.1)
@@ -94,6 +99,7 @@ GEM
       addressable (>= 2.8.0)
       crack (>= 0.3.2)
       hashdiff (>= 0.4.0, < 2.0.0)
+    yard (0.9.38)
 
 PLATFORMS
   x86_64-linux
@@ -101,11 +107,14 @@ PLATFORMS
 DEPENDENCIES
   api_adaptor!
   rake (~> 13.0)
+  redcarpet (~> 3.6)
   rspec (~> 3.0)
   rubocop (~> 1.21)
+  rubocop-yard
   simplecov (~> 0.22)
   timecop (~> 0.9)
   webmock (~> 3.18)
+  yard (~> 0.9)
 
 BUNDLED WITH
    2.4.13
