@@ -1,3 +1,10 @@
+## [1.0.1] - 2026-05-31
+
+### Changed
+- Updated bundled gem dependencies to their latest compatible versions, including addressable, bigdecimal, json, rake, rubocop, timecop, webmock, and yard.
+- Updated GitHub Actions dependencies, including ruby/setup-ruby v1.300.0, rubygems/release-gem v1.2.0, actions/deploy-pages v5.0.0, and refreshed CodeQL action pins.
+- Use Ruby 3.4 for YARD documentation generation to keep docs builds compatible with the current toolchain.
+
 ## [1.0.0] - 2026-02-15
 
 ### Added
