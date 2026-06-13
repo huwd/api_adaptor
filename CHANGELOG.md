@@ -1,3 +1,10 @@
+## [1.0.3] - 2026-06-13
+
+### Changed
+- Updated GitHub Actions dependencies: actions/checkout v6.0.3, ruby/setup-ruby v1.310.0, github/codeql-action v4.36.2, rubygems/release-gem v1.3.0, actions/configure-pages v6.0.0.
+- Updated bundled development dependencies: rubocop 1.87.0, rubocop-yard 1.2.0, yard 0.9.44.
+- Release workflow now runs on Node 24.
+
 ## [1.0.2] - 2026-05-31
 
 ### Changed
