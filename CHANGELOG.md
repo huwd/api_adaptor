@@ -1,3 +1,9 @@
+## [1.0.4] - 2026-08-31
+
+### Changed
+- Updated GitHub Actions dependencies: ruby/setup-ruby v1.316.0, github/codeql-action v4 (autobuild/init/analyze), actions/upload-pages-artifact v5.0.0, rubygems/release-gem v1.4.0.
+- Updated bundled development dependencies: rubocop 1.89.0, rubocop-ast 1.50.0, webmock 3.26.3, yard 0.9.45, json 2.21.2, parser 3.3.12.0, language_server-protocol 3.17.0.6.
+
 ## [1.0.3] - 2026-06-13
 
 ### Changed
